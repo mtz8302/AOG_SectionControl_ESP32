@@ -1,12 +1,12 @@
 void RateSWRead()
 {
 	SectSWcurrentTime = millis();
-	RateSWLeftVal = analogRead(RateSWLeft_PIN);
+	RateSWLeftVal = analogRead(SCSet.RateSWLeft_PIN);
 
 	//left pressed to low
 	if (RateSWLeftVal < SWOFF)
 	{
-		if (RateControlLeftEquiped) 
+		if (SCSet.RateControlLeftEquiped) 
 		{
 			if (SectSWcurrentTime > RateSWlastTimeLeft + RateSWDelayTime) 
 			{
@@ -31,7 +31,7 @@ void RateSWRead()
 	//pressed to high
 	if (RateSWLeftVal > SWON)
 		{
-			if (RateControlLeftEquiped) 
+			if (SCSet.RateControlLeftEquiped)
 			{
 				if (SectSWcurrentTime > RateSWlastTimeLeft + RateSWDelayTime) 
 				{

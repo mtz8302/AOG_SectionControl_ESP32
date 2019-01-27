@@ -97,7 +97,7 @@ void Core1code(void * pvParameters) {
 			rateErrorRight = rateSetPointRight - rateKRight;
 
 			calcRatePID();
-			if (RateControlLeftEquiped) { motorDrive(); }
+			if (SCSet. RateControlLeftEquiped) { motorDrive(); }
 
 			//Also needs right side TODO
 			//calcRatePIDRight();
@@ -130,13 +130,21 @@ void Core1code(void * pvParameters) {
 		// header high/low, relay byte, speed byte, rateSetPoint hi/lo
 
 	
-		if (SectSWequiped) { SectSWRead(); }  //checks if section switch is toggled
+		if ((SCSet.SectSWequiped) | (SCSet.SectMainSWType != 0))
+		{
+			SectSWRead(); //checks if section switch is toggled
+			//RelayToAOG 5+6 set in ReadSwitches_buildBytes HiByte, LowByte if bit set -> AOG section forced ON
+			RelayToAOG[7] = SectSWOffToAOG[1]; //HiByte if bit set -> AOG section forced off
+			RelayToAOG[8] = SectSWOffToAOG[0]; //LowByte if bit set -> AOG section forced off
+			RelayToAOG[9] = SectMainToAOG; // Bits: AOG section control AUTO, Section control OFF, Rate L+R ...
+		}
 		else { RelayOUT[0] = RelayFromAOG[0]; RelayOUT[1] = RelayFromAOG[1]; }
+
 		//RelayOUT[0] = RelayFromAOG[0]; RelayOUT[1] = RelayFromAOG[1];
 		SetRelays();	
 		
-		if (RateSWLeftEquiped | RateSWRightEquiped) { RateSWRead(); }
-		if (!RateControlLeftEquiped) { motorDrive(); } //if Manual do everytime, not only in timed loop
+		if (SCSet. RateSWLeftEquiped | SCSet.RateSWRightEquiped) { RateSWRead(); }
+		if (!SCSet. RateControlLeftEquiped) { motorDrive(); } //if Manual do everytime, not only in timed loop
 	}//end of main
 }
 

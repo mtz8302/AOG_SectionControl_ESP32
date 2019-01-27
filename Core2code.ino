@@ -7,6 +7,7 @@ void Core2code(void * pvParameters) {
 
 		UDP_read();
 		if (NewDataToAOG) { UDP_write(); NewDataToAOG = false; }
+		//SettingsPage();  //wifi client handling Setting HTML page and EEPROM
 	}
 }
 
@@ -76,13 +77,10 @@ void UDP_read()
 			flowmeterCalFactorLeft = ((float)(UDPFromAOGData[4] << 8 | UDPFromAOGData[5]));   //high,low bytes
 			flowmeterCalFactorRight = ((float)(UDPFromAOGData[6] << 8 | UDPFromAOGData[7]));   //high,low bytes
 		}
-			
-	//UDPFromAOGLength = 0; //process data only once
 }//----------------------UDP read
 
 
 void UDP_write()
 {
-	//delay(0);
-	UDPSC.writeTo(RelayToAOG, UDPToAOGLength, AOGIP, PortToAOG);
+	UDPSC.writeTo(RelayToAOG, UDPToAOGLength, AOGIPAdr, PortToAOG);
 }

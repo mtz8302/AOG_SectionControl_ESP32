@@ -6,17 +6,16 @@ void SectSWRead()
 	SectSWOffToAOG[1] = 0;
 	
 	//read all switches
-	for (int i=0 ; i<SectNum; i++)
+	for (int i=0 ; i<SCSet.SectNum; i++)
 	{
-		SectSWVal[i] = digitalRead(SectSW_PIN[i]);
-		//Serial.print(SectSWVal[i]);
-		//Serial.print(",");
+		SectSWVal[i] = digitalRead(SCSet.SectSW_PIN[i]);
+
 	}
-	MainSWVal = analogRead(SectMainSW_PIN);
-	//Serial.print(MainSWVal);
-	//Serial.print(",");
-	AutoSWVal = digitalRead(SectAutoManSW_PIN);
-	//Serial.println(AutoSWVal);
+	if (SCSet.SectMainSWType != 0) { MainSWVal = analogRead(SCSet.SectMainSW_PIN); }
+	AutoSWVal = digitalRead(SCSet.SectAutoManSW_PIN);	
+	
+	
+
 
 
 	//AUTO / MAN SW
@@ -29,17 +28,36 @@ void SectSWRead()
 		if (SectSWcurrentTime > SectAutoSWTime + SectSWDelayTime) { SectAutoSWpressed = false; SectAutoOld = SectAuto; }
 	}
 
-	//Main ON/OFF
+//Main ON/OFF	
+	//checking MainSWType an "level" hitch level input to "normal" toggle switch values
+	if (SCSet.SectMainSWType== 2)  // 0 = not equiped 1 = (ON)-OFF-(ON) toggle switch or push buttons 2 = connected to hitch level sensor 3 = inverted hitch level sensor
+	{
+		//using hitch sensor low value = hitch down = working -> so invert signal
+		if (MainSWVal < SCSet.HitchLevelVal) { MainSWVal = SWON + 100; }
+		else { MainSWVal = SWOFF - 100; }
+		if (MainSWVal == MainSWValOld) { MainSWVal = ((SWOFF + SWON) / 2); }//set "switch" to middle, when same status as last time
+		else { MainSWValOld = MainSWVal; } //first time when changed
+	}
+	if (SCSet.SectMainSWType == 3)  // 0 = not equiped 1 = (ON)-OFF-(ON) toggle switch or push buttons 2 = connected to hitch level sensor 3 = inverted hitch level sensor
+	{
+		//using hitch sensor high value = hitch down = working -> so fit signal level to standard
+		if (MainSWVal > SCSet.HitchLevelVal) { MainSWVal = SWON + 100; }
+		else { MainSWVal = SWOFF - 100; }
+		if (MainSWVal == MainSWValOld) { MainSWVal = ((SWOFF + SWON) / 2); }//set "switch" to middle, when same status as last time
+		else { MainSWValOld = MainSWVal; } //first time when changed
+	}
+	
+	//if Main toggle switch pressed, use it for delay time and signal to AGO stays for SectSWDelayTime
+	if (MainSWVal > SWON) { SectMainOn = true; SectMainSWpressed = true; SectMainSWlastTime = SectSWcurrentTime; }
+	if (MainSWVal < SWOFF) { SectMainOn = false; SectMainSWpressed = true; SectMainSWlastTime = SectSWcurrentTime; }
+	if (SectSWcurrentTime > SectMainSWlastTime + SectSWDelayTime) { SectMainSWpressed = false; }
+
 	//if any section is spraying by AOG, and MainSW is not used set MainOn = ON, else OFF
 	if (!SectMainSWpressed && SectAuto) {
 		if ((RelayFromAOG[0] > 0) || (RelayFromAOG[1] > 0)) { SectMainOn = true; }
 		else SectMainOn = false;
 	}
-
-	//if Main toggle switch pressed, use it for delay time and signal to AGO stays for SectSWDelayTime
-	if (MainSWVal > SWON) { SectMainOn = true; SectMainSWpressed = true; SectMainSWlastTime = SectSWcurrentTime; }
-	if (MainSWVal < SWOFF) { SectMainOn = false; SectMainSWpressed = true; SectMainSWlastTime = SectSWcurrentTime; }
-	if (SectSWcurrentTime > SectMainSWlastTime + SectSWDelayTime) { SectMainSWpressed = false; }
+	
 
 	//set relay bytes -----------------------
 	SectSWOffToAOGOld[0] = SectSWOffToAOG[0]; SectSWOffToAOGOld[1] = SectSWOffToAOG[1];
@@ -47,8 +65,8 @@ void SectSWRead()
 	byte a = 0;
 	byte SectNumLoop = 0;
 	boolean allDone = false;
-	if (SectNum > 8) { SectNumLoop = SectNum - 8; a = 1; }
-	else { SectNumLoop = SectNum; a = 0; }
+	if (SCSet.SectNum > 8) { SectNumLoop = SCSet.SectNum - 8; a = 1; }
+	else { SectNumLoop = SCSet.SectNum; a = 0; }
 	do
 	{
 		for (int i = 0;i < SectNumLoop;i++) {
@@ -96,12 +114,12 @@ void SectSWRead()
 
 	//MAN and all sections OFF by MAIN then send SW OFF to AOG
 	if (!SectAuto && !SectMainOn) {
-		if (SectNum > 8)
+		if (SCSet.SectNum > 8)
 		{
 			for (byte k = 0; k < 8; k++) { bitSet(SectSWOffToAOG[0], k); }
-			for (byte k = 7; k < SectNum;k++) { bitSet(SectSWOffToAOG[1], k - 7); }
+			for (byte k = 7; k < SCSet.SectNum;k++) { bitSet(SectSWOffToAOG[1], k - 7); }
 		}
-		else for (byte k = 0; k < SectNum;k++) { bitSet(SectSWOffToAOG[0], k); }
+		else for (byte k = 0; k < SCSet.SectNum;k++) { bitSet(SectSWOffToAOG[0], k); }
 	}
 
 	//if AUTO/Man SW moved to Auto and Main on, send Main on to AOG to turn all auto and wait for new RelayByte
