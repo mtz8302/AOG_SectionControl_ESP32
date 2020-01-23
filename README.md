@@ -15,3 +15,6 @@ Pressur(Flowrate) and Main Switch are (ON)-OFF-(ON) switches or push buttons: 3.
 For the outputs use a driver like UDN2981(relais have common GND and UDN does +) or ULN2803 (relais have common + and ULN does GND) 
 
 make shure, that the SSID and password fits to your tractor WIFI
+
+
+NO rate control in AOG Ver 4 (not supported by AOG)
