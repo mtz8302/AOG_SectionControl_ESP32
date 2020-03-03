@@ -100,6 +100,9 @@ void getDataFromAOG()
             Serial.println();
         }*/
     }
+#if HardwarePlatform == 1 //nano33iot
+    else delay(5);//do WiFi
+#endif
 
     //SETTINGS Header has been found, 6 bytes are the settings
     if (isSettingFound) //actual no rate control in AOG, so not used
