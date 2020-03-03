@@ -311,7 +311,11 @@ void loop() {
 	else { RelayOUT[0] = RelayFromAOG[0]; RelayOUT[1] = RelayFromAOG[1]; }
 
 	SetRelays();
-
+	
+#if HardwarePlatform == 1 //nano33iot
+	delay(5);//do WiFi
+#endif
+	
 	//Rate switches and motor drive
 	if ((SCSet.RateSWLeftEquiped == 1) || (SCSet.RateSWRightEquiped == 1)) { RateSWRead(); }
 	if (SCSet.RateControlLeftEquiped == 0) { motorDrive(); } //if Manual do everytime, not only in timed loop
