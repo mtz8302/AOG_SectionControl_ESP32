@@ -61,7 +61,7 @@ struct Storage {
 	uint8_t SectSW_PIN[16] =  { 13,12,14,27,26,25,33,255,255,255,255,255,255,255,255,255 };  //section switches to GPIOs of ESP32 GND = section off, open/+3.3V section auto/on
                                             //Switch pin set for nano 33 iot:{ A0,A1,A2,A3,A4,A5,3,255,255,255,255,255,255,255,255,255 };
 	uint8_t	SectMainSWType = 1;						    // 0 = not equiped 1 = (ON)-OFF-(ON) toggle switch or push buttons 2 = connected to hitch level sensor 3 = inverted hitch level sensor
-	uint16_t	HitchLevelVal = 2000;					  // Value for hitch level: switch AOG section control to Auto if lower than... ESP:2000 nano ?
+	uint16_t	HitchLevelVal = 2000;					  // Value for hitch level: switch AOG section control to Auto if lower than... ESP:2000 nano 500
 	uint8_t	SectMainSW_PIN = 32;//A7;					//ESP32 to AOG Main auto toggle switch open=nothing/AOG button GND=OFF +3,3=AOG Auto on	OR connected to hitch level sensor	
 		uint8_t	SectAutoManSW_PIN = 39;//4;			// Main Auto/Manual switch 39:!!no internal pullup!!
 
@@ -126,14 +126,20 @@ WiFiUDP UDPFromAOG = WiFiUDP();
 WiFiUDP UDPToAOG = WiFiUDP();
 
 //values to decide position of section switch
+#if HardwarePlatform == 0//ESP32 high = 4095
 #define SWOFF 350 // analog in is lower than .. for off
-#define SWON  2900 // analog in is lower than .. for auto/on
+#define SWON 2900 // analog in is lower than .. for auto/on
+#endif
+#if HardwarePlatform == 1 //nano33iot hight = 1023
+#define SWOFF 300 // analog in is lower than .. for off
+#define SWON  700 // analog in is lower than .. for auto/on
+#endif
 
-//analog value of the toggle switches
-int MainSWVal = 2000;
-int MainSWValOld = 2000;
-int RateSWLeftVal = 2000;
-int RateSWRightVal = 2000;
+//analog value of the toggle switches (default: middle=unpressed)
+int MainSWVal = (SWOFF + SWON) / 2;
+int MainSWValOld = (SWOFF + SWON) / 2;
+int RateSWLeftVal = (SWOFF + SWON) / 2;
+int RateSWRightVal = (SWOFF + SWON) / 2;
 
 //state of the switches HIGH = ON/Auto LOW = OFF								 
 boolean SectSWVal[16] = { HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH };
