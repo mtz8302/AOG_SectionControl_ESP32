@@ -331,7 +331,7 @@ void make_HTML01() {
     strcat(HTML_String, "Section control software for AgOpenGPS <br>");
     strcat(HTML_String, "supports data via USB / WiFi UDP <br>");
     strcat(HTML_String, "more settings like IPs, UPD ports... in setup zone of INO code<br>");
-    strcat(HTML_String, "(Rev. 3.0 by MTZ8302 Webinterface by WEDER)<br><br><hr>");
+    strcat(HTML_String, "(Rev. 4.0 by MTZ8302 Webinterface by WEDER)<br><br><hr>");
 
 
     //---------------------------------------------------------------------------------------------  
