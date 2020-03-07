@@ -2,10 +2,10 @@
 
 Section Control running on ESP32 or Arduino 33 iot for AgOpenGPS PC Software.
 
-Supports: - Section control, 16 sections
-          - hardware input switches (Main ON/OFF, OFF/Auto/ON for each section, +/- pressure (only motor driven, no rate control in V4 so far))
-          - documentation only (e.g. for machinery with hydraulic gates)
-          
+Supports: <br>Section control, 16 sections
+          <br>hardware input switches (Main ON/OFF, OFF/Auto/ON for each section, +/- pressure (only motor driven, no rate control in V4 so far))
+          <br>documentation only (e.g. for machinery with hydraulic gates)
+   <br>       
 and most combinations of it
 
 Settings can be changed via webinterface. The IP adress is x.x.x.71 in your WiFi network. If the log to your networks fails, you wait until an accesspoint is created. Connenct your computer to it and use your browser to get to webinterface at 192.168.1.1
