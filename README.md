@@ -1,6 +1,4 @@
-# AOG_ESP32_Section_control
-Section Control for AgOpenGPS for the ESP32
-
+# AOG_Section_control
 
 Section Control running on ESP32 or Arduino 33 iot for AgOpenGPS PC Software.
 
