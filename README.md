@@ -1,11 +1,11 @@
 # AOG_Section_control
 
-Section Control running on ESP32 or Arduino 33 iot for AgOpenGPS PC Software.
+<b>Section Control running on ESP32 or Arduino 33 iot for AgOpenGPS PC Software.
 
 Supports: <br>- Section control, 16 sections
           <br>- hardware input switches (Main ON/OFF, OFF/Auto/ON for each section, +/- pressure (only motor driven, no rate control in V4 so far))
           <br>- documentation only (e.g. for machinery with hydraulic gates)
-   <br>and most combinations of it
+   <br>and most combinations of it</b>
 
 Settings can be changed via webinterface. The IP adress is x.x.x.71 in your WiFi network. If the log to your networks fails, you wait until an accesspoint is created. Connenct your computer to it and use your browser to get to webinterface at 192.168.1.1
 
@@ -15,11 +15,11 @@ Make sure, that the SSID and password fits to your tractor's WIFI.
 
 Works with the circuit (by WEder) based on Arduino nano, see PDF.
 
-!!!The ESP32 and the Nano33 iot use 3.3V for any in-/outputs !!!
+<b>!!!The ESP32 and the Nano33 iot use 3.3V for any in-/outputs !!!</b>
 
 A suggestion for ESP32 pinout is in the PDF. Don't use pins GPIO 0, 6-12. The pins 33-39 are input only, and don't have pullup resistors.
 
-Further remarks on the ESP32 pinout:
+<b>Further remarks on the ESP32 pinout:</b><br>
 The circuit could be mostly the same as in WEder's schematic.
 
 All switches use internal pullup, so switch to GND.
