@@ -1,35 +1,26 @@
 //-------------------------------------------------------------------------------------------------
 
-void WiFi_LED_blink()
+void WiFi_LED_blink(byte blkSpeed)   //8. März 2020
 {
-	//no data for more than 2 secs = blink
-	if (millis() > (DataFromAOGTime + 3000L)) {
-		if (!LED_WIFI_ON) {
-			if (millis() > (LED_WIFI_time + LED_WIFI_pause)) {
-				LED_WIFI_time = millis();
-				LED_WIFI_ON = true;
+	unsigned long currentTime = millis();
+	if (!LED_WIFI_ON) {
+		if (currentTime > (LED_WIFI_time + (LED_WIFI_pause >> blkSpeed))) {
+			LED_WIFI_time = currentTime;
+			LED_WIFI_ON = true;
 #if useLED_BUILTIN
-				digitalWrite(LED_BUILTIN, HIGH);
+			digitalWrite(LED_BUILTIN, HIGH);
 #endif
-				digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
-			}
-		}
-		if (LED_WIFI_ON) {
-			if (millis() > (LED_WIFI_time + LED_WIFI_pulse)) {
-				LED_WIFI_time = millis();
-				LED_WIFI_ON = false;
-#if useLED_BUILTIN
-				digitalWrite(LED_BUILTIN, LOW);
-#endif
-				digitalWrite(SCSet.LEDWiFi_PIN, !SCSet.LEDWiFi_ON_Level);
-			}
+			digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
 		}
 	}
-
-	else {
-		digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
+	if (LED_WIFI_ON) {
+		if (currentTime > (LED_WIFI_time + (LED_WIFI_pulse >> blkSpeed))) {
+			LED_WIFI_time = currentTime;
+			LED_WIFI_ON = false;
 #if useLED_BUILTIN
-		digitalWrite(LED_BUILTIN, HIGH);
-#endif			
+			digitalWrite(LED_BUILTIN, LOW);
+#endif
+			digitalWrite(SCSet.LEDWiFi_PIN, !SCSet.LEDWiFi_ON_Level);
+		}
 	}
 }

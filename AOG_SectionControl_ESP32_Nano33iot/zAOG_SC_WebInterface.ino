@@ -24,14 +24,10 @@ int Aufruf_Zaehler = 0;
 int action;
 
 //-------------------------------------------------------------------------------------------------
-// 4. Maerz 2020
+// 11. Maerz 2020
 
 void doWebInterface() {
 
-    char my_char;
-    int htmlPtr = 0;
-    int myIdx;
-    int myIndex;
     unsigned long my_timeout;
 
     // Check if a client has connected
@@ -41,82 +37,78 @@ void doWebInterface() {
 
     Serial.println("New Client:");           // print a message out the serial port
 
-    my_timeout = millis() + 500L;
+    my_timeout = millis() + 250L;
+    while (!client_page.available() && (millis() < my_timeout)) { delay(10); }
+    delay(10);
+    if (millis() > my_timeout)
+    {
+        Serial.println("Client connection timeout!");
+        client_page.flush();
+        client_page.stop();
+        return;
+    }
 
-    while (client_page.connected() && (millis() < my_timeout)) {
-        delay(10);
-        if (millis() > my_timeout)
-        {
-            Serial.print("Client connection timeout!\n");
-            client_page.flush();
-            client_page.stop();
-            break;// return;
-        }
+    //---------------------------------------------------------------------
+    //htmlPtr = 0;
+    char c;
+    if (client_page) {                        // if you get a client,
+      //Serial.print("New Client.\n");                   // print a message out the serial port
+        String currentLine = "";                // make a String to hold incoming data from the client
+        while (client_page.connected()) {       // loop while the client's connected
+            delay(0);
+            if (client_page.available()) {        // if there's bytes to read from the client,
+                char c = client_page.read();        // read a byte, then
+                Serial.print(c);                             // print it out the serial monitor
+                if (c == '\n') {                    // if the byte is a newline character
 
-        //   if (client_page.available()) {
-               //---------------------------------------------------------------------
-               //htmlPtr = 0;
-        char c;
-        if (client_page) {                        // if you get a client,
-          //Serial.print("New Client.\n");                   // print a message out the serial port
-            String currentLine = "";                // make a String to hold incoming data from the client
-            while (client_page.connected()) {       // loop while the client's connected
-                delay(0);
-                if (client_page.available()) {        // if there's bytes to read from the client,
-                    char c = client_page.read();        // read a byte, then
-                    Serial.print(c);                             // print it out the serial monitor
-                    if (c == '\n') {                    // if the byte is a newline character
+                  // if the current line is blank, you got two newline characters in a row.
+                  // that's the end of the client HTTP request, so send a response:
+                    if (currentLine.length() == 0) {
 
-                      // if the current line is blank, you got two newline characters in a row.
-                      // that's the end of the client HTTP request, so send a response:
-                        if (currentLine.length() == 0) {
+                        make_HTML01();  // create Page array
+                       //---------------------------------------------------------------------
+                       // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+                       // and a content-type so the client knows what's coming, then a blank line:
+                        strcpy(HTTP_Header, "HTTP/1.1 200 OK\r\n");
+                        strcat(HTTP_Header, "Content-Length: ");
+                        strcati(HTTP_Header, strlen(HTML_String));
+                        strcat(HTTP_Header, "\r\n");
+                        strcat(HTTP_Header, "Content-Type: text/html\r\n");
+                        strcat(HTTP_Header, "Connection: close\r\n");
+                        strcat(HTTP_Header, "\r\n");
 
-                            make_HTML01();  // create Page array
-                           //---------------------------------------------------------------------
-                           // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-                           // and a content-type so the client knows what's coming, then a blank line:
-                            strcpy(HTTP_Header, "HTTP/1.1 200 OK\r\n");
-                            strcat(HTTP_Header, "Content-Length: ");
-                            strcati(HTTP_Header, strlen(HTML_String));
-                            strcat(HTTP_Header, "\r\n");
-                            strcat(HTTP_Header, "Content-Type: text/html\r\n");
-                            strcat(HTTP_Header, "Connection: close\r\n");
-                            strcat(HTTP_Header, "\r\n");
-
-                            client_page.print(HTTP_Header);
-                            delay(20);
-                            send_HTML();
-                    
-                            // break out of the while loop:
-                            break;
-                        }
-                        else {    // if you got a newline, then clear currentLine:
-                            currentLine = "";
+                        client_page.print(HTTP_Header);
+                        delay(20);
+                        send_HTML();
+                        // break out of the while loop:
+                        break;
+                    }
+                    else {    // if you got a newline, then clear currentLine:
+                        currentLine = "";
+                    }
+                }
+                else if (c != '\r')
+                { // if you got anything else but a carriage return character,
+                    currentLine += c;      // add it to the end of the currentLine
+                    if (currentLine.endsWith("HTTP"))
+                    {
+                        if (currentLine.startsWith("GET "))
+                        {
+                            currentLine.toCharArray(HTML_String, currentLine.length());
+                            Serial.println(); //NL
+                            exhibit("Request : ", HTML_String);
+                            process_Request();
                         }
                     }
-                    else if (c != '\r')
-                    { // if you got anything else but a carriage return character,
-                        currentLine += c;      // add it to the end of the currentLine
-                        if (currentLine.endsWith("HTTP"))
-                        {
-                            if (currentLine.startsWith("GET "))
-                            {
-                                currentLine.toCharArray(HTML_String, currentLine.length());
-                                Serial.println(); //NL
-                                exhibit("Request : ", HTML_String);
-                                process_Request();
-                            }
-                        }
-                    }//end else
-                } //end client available
-            } //end while client.connected
-            // close the connection:
-            client_page.stop();
-            Serial.print("Pagelength : ");
-            Serial.print((long)strlen(HTML_String));
-            Serial.print("   --> Client Disconnected\n");
-        }// end if client 
-    }//while connected and no timeout
+                }//end else
+            } //end client available
+        } //end while client.connected
+        // close the connection:
+        client_page.stop();
+        Serial.print("Pagelength : ");
+        Serial.print((long)strlen(HTML_String));
+        Serial.print("   --> Client Disconnected\n");
+    }// end if client 
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -299,11 +291,13 @@ void process_Request()
         WiFi.end();
         delay(2000);
         Serial.println("restarting WiFi");
-		WiFi_Start_STA(1);
+        NetWorkNum = 1;
+		WiFi_Start_STA();
 		delay(200);
-		if (my_WiFi_Mode == 0) { WiFi_Start_STA(2); }
+        if (my_WiFi_Mode == 0) { NetWorkNum = 2; WiFi_Start_STA(); }
 		delay(200);
 		if (my_WiFi_Mode == 0) {// if failed start AP
+            NetWorkNum = 0;
 			WiFi_Start_AP();
 			delay(100);
 		}
@@ -703,7 +697,7 @@ void make_HTML01() {
     //---------------------------------------------------------------------------------------------  
     // Relay PINs selection
 
-    //ESP crashes, when GPIOs are changed
+    //ESP crashes sometimes, when GPIOs are changed, Nano33iot: not enough memory HTML string lenght: 60000
     if (SCSet.SectRelaysEquiped) {
         strcat(HTML_String, "<h2>Relay pin setting</h2>");
         strcat(HTML_String, "<br>");

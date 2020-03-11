@@ -6,12 +6,12 @@ struct Storage {
 	
 	uint8_t DataTransVia = 1;         //transfer data via 0: USB, 1: WiFi, 4: USB 10 byte format for AOG V4
 									   
-	uint8_t LEDWiFi_PIN = 13;         // WiFi Status LED 0 = off
-	uint8_t LEDWiFi_ON_Level = 1;     // 1 = HIGH = LED on high, 0 = LOW = LED on low
+	uint8_t LEDWiFi_PIN = 5; //13;         // WiFi Status LED 0 = off
+	uint8_t LEDWiFi_ON_Level = 0;     // 1 = HIGH = LED on high, 0 = LOW = LED on low
 
 	//WiFi---------------------------------------------------------------------------------------------
 	//tractors WiFi
-	char ssid[24] =  "Deutz_6006";            // WiFi network Client name
+	char ssid[24] = "Fendt_209V";// "Deutz_6006";            // WiFi network Client name
 	char password[24] = "";                   // WiFi network password//Accesspoint name and password
 	char ssid2[24] = "GPS_unit_ESP_M8T";      // WiFi network Client name
 	char password2[24] = "";                  // WiFi network password//Accesspoint name and password
@@ -33,8 +33,8 @@ struct Storage {
 //GPIOs of the ESP32 (current setting is for the layout shown as example WIKI)
 
 // if only 1 flowrate is used, use left
-//Example1: motor valve is controled only by Switch not by AOG, no Flowmeter, : RateControl..Equiped = false; RateSW..Equiped = true; RateControlPRM = false;
-//Example2: PWM valve, with flowmeter all controled by AOG:   RateControl..Equiped = true; RateSW..Equiped = true; RateControlPRM = true;	
+//Example1: motor valve is controled only by Switch not by AOG, no Flowmeter, : RateControl..Equiped = false; RateSW..Equiped = true; RateControlPWM = false;
+//Example2: PWM valve, with flowmeter all controled by AOG:   RateControl..Equiped = true; RateSW..Equiped = true; RateControlPWM = true;	
 	uint8_t RateControlLeftEquiped = 0;		    //1 if Rate control is there, else: 0
 	uint8_t RateSWLeftEquiped = 1;			      //1 if Rate control Pressure switch is there, else: 0
 	uint8_t RateSWLeft_PIN = 34;//A6;				  //Rate +/- switch
@@ -52,16 +52,16 @@ struct Storage {
 	uint8_t	FlowEncARight_PIN = 255;				  //Flowmeter right/2 
 	
 
-	uint8_t SectNum = 7;	                    // number of sections equiped max 16 (in AOG)
+	uint8_t SectNum = 6;	                    // number of sections equiped max 16 (in AOG)
 	uint8_t SectRelaysEquiped = 1;				    //relays for SC output are equiped (0=no output, only documentation)
 	uint8_t SectRelaysON = 1;					        //relays spray on 1 or 0 (high or low)
-	uint8_t Relay_PIN[16] =  { 15,2,4,16,17,5,18,19,21,255,255,255,255,255,255,255 };		//GPIOs of ESP32 OUT to sections of sprayer HIGH/3.3V = ON
-                                            //Relay pin set for nano 33 iot: { 13,10,9,8,7,6,5,255,255,255,255,255,255,255,255,255 };
+	uint8_t Relay_PIN[16] =  { 15,2,4,16,17,255,18,19,21,255,255,255,255,255,255,255 };		//GPIOs of ESP32 OUT to sections of sprayer HIGH/3.3V = ON
+                               //            { 10,9,8,7,6,5,255,255,255,255,255,255,255,255,255,255 }; //Relay pin set for nano 33 iot: 
 	uint8_t SectSWEquiped = 1;					      //1 if section input switches are equiped, else: 0	
-	uint8_t SectSW_PIN[16] =  { 13,12,14,27,26,25,33,255,255,255,255,255,255,255,255,255 };  //section switches to GPIOs of ESP32 GND = section off, open/+3.3V section auto/on
-                                            //Switch pin set for nano 33 iot:{ A0,A1,A2,A3,A4,A5,3,255,255,255,255,255,255,255,255,255 };
+	uint8_t SectSW_PIN[16] = { 13,12,14,27,26,25,33,255,255,255,255,255,255,255,255,255 };  //section switches to GPIOs of ESP32 GND = section off, open/+3.3V section auto/on
+                                     //     { A0,A1,A2,A3,A4,A5,3,255,255,255,255,255,255,255,255,255 };  //Switch pin set for nano 33 iot:
 	uint8_t	SectMainSWType = 1;						    // 0 = not equiped 1 = (ON)-OFF-(ON) toggle switch or push buttons 2 = connected to hitch level sensor 3 = inverted hitch level sensor
-	uint16_t	HitchLevelVal = 2000;					  // Value for hitch level: switch AOG section control to Auto if lower than... ESP:2000 nano 500
+	uint16_t	HitchLevelVal = 500;//2000;					  // Value for hitch level: switch AOG section control to Auto if lower than... ESP:2000 nano 500
 	uint8_t	SectMainSW_PIN = 32;//A7;					//ESP32 to AOG Main auto toggle switch open=nothing/AOG button GND=OFF +3,3=AOG Auto on	OR connected to hitch level sensor	
 		uint8_t	SectAutoManSW_PIN = 39;//4;			// Main Auto/Manual switch 39:!!no internal pullup!!
 
@@ -88,12 +88,16 @@ bool EEPROM_clear = false;
 
 // WiFi 
 byte my_WiFi_Mode = 0;  // WIFI_STA = 1 = Workstation  WIFI_AP = 2  = Accesspoint
+byte NetWorkNum = 1;
+int pingResult, WiFiWatchDog = 0;
+bool UDP_running = false;
 
 // WiFi LED blink times: searching WIFI: blinking 4x faster; connected: blinking as times set; data available: light on; no data for 2 seconds: blinking
 unsigned int LED_WIFI_time = 0;
 unsigned int LED_WIFI_pulse = 1400;   //light on in ms 
 unsigned int LED_WIFI_pause = 700;   //light off in ms
 boolean LED_WIFI_ON = false;
+unsigned long timeout, timeout2;
 
 
 
@@ -148,10 +152,10 @@ byte debugmodeSwitchesBak = 3;  //0 = false 1 = true 3 = not used
 
 //loop time variables in microseconds
 const unsigned long LOOP_TIME = 1000;// 400; //in msec; 1000 = 1 Hz
-const unsigned long SectSWDelayTime = 1500;//1400; //time the arduino waits after manual Switch is used before acception command from AOG in msec
+const unsigned long SectSWDelayTime = 200;// 1500;//1400; //time the arduino waits after manual Switch is used before acception command from AOG in msec
 unsigned long lastTime = LOOP_TIME;
 unsigned long currentTime = LOOP_TIME;
-unsigned long DataFromAOGTime = LOOP_TIME;
+unsigned long DataFromAOGTime = 0;
 unsigned long SectAutoSWTime = LOOP_TIME;
 unsigned long SectAutoSWlastTime = LOOP_TIME;
 unsigned long SectMainSWlastTime = LOOP_TIME;
@@ -260,12 +264,14 @@ void setup()
 	assignGPIOs();
 
 	//start WiFi
-	WiFi_Start_STA(1);
+	NetWorkNum = 1;
+	WiFi_Start_STA();
 	delay(200);
 	//try 2. wifi network if no connection
-	if (my_WiFi_Mode == 0) {WiFi_Start_STA(2); }
+	if (my_WiFi_Mode == 0) { NetWorkNum = 2; WiFi_Start_STA(); }
 	delay(200);
 	if (my_WiFi_Mode == 0) {// if failed start AP
+		NetWorkNum = 0;
 		WiFi_Start_AP();
 		delay(100);
 	}
@@ -315,25 +321,43 @@ void loop() {
 #if HardwarePlatform == 1 //nano33iot
 	delay(5);//do WiFi
 #endif
-	
+
 	//Rate switches and motor drive
 	if ((SCSet.RateSWLeftEquiped == 1) || (SCSet.RateSWRightEquiped == 1)) { RateSWRead(); }
 	if (SCSet.RateControlLeftEquiped == 0) { motorDrive(); } //if Manual do everytime, not only in timed loop
-	//Serial.println("loop");
+
 	doWebInterface();
 
-	//timed loop: runs with 1Hz or if new data from switches to send data to AOG
 	currentTime = millis();
+
+	//check if data is comming in as it should
+	if ((currentTime > (DataFromAOGTime + 350)) && (DataFromAOGTime > 0)) {
+		if (SectAuto) { WiFi_LED_blink(3); }
+		else { WiFi_LED_blink(0); }
+
+		//check WiFi connection and reconnect if neccesary
+		if ((SCSet.DataTransVia == 1) && (NetWorkNum > 0)) { WiFi_connection_check(); }
+	}
+	else {
+		if (!LED_WIFI_ON) {// turn LED on if new data
+			digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
+			LED_WIFI_ON = true;
+		}
+	}
+
+//timed loop: runs with 1Hz or if new data from switches to send data to AOG
+	currentTime = millis();	
 	if ((currentTime > LOOP_TIME + lastTime) || (NewDataToAOG)) {
 		lastTime = currentTime;
 		AOGDataSend();
 		if (NewDataToAOG) {
-			delay(10); //debounce switches
+			delay(10); 
 			NewDataToAOG = false;
 			AOGDataSend(); //send 2. time for safety
 		}
 		if (SCSet.debugmode) {
 			Serial.print("timed loop (sendig data to AOG) running, timing (ms): "); Serial.println(LOOP_TIME);
+			Serial.print("age of last data from AOG (ms): "); Serial.println(millis() - DataFromAOGTime);
 		}
 		if (SCSet.debugmodeDataToAOG) {
 			Serial.print("Data to AOG ");

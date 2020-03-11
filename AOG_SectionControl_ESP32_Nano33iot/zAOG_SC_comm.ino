@@ -90,15 +90,6 @@ void getDataFromAOG()
         //reset watchdog as we just heard from AgOpenGPS
         watchdogTimer = 0;
         DataFromAOGTime = millis();
-     /*   if (SCSet.debugmodeDataFromAOG) {
-            Serial.print("got data from AOG:  ");
-            for (byte i = 2; i < SCSet.DataFromAOGLength; i++)
-            {
-                Serial.print(DataFromAOG[i]);
-                Serial.print(",");
-            }
-            Serial.println();
-        }*/
     }
 #if HardwarePlatform == 1 //nano33iot
     else delay(5);//do WiFi
@@ -114,15 +105,6 @@ void getDataFromAOG()
         //flow meter cal factor in counts per Liter
         flowmeterCalFactorLeft = ((float)(DataFromAOG[4] << 8 | DataFromAOG[5]));   //high,low bytes
         flowmeterCalFactorRight = ((float)(DataFromAOG[6] << 8 | DataFromAOG[7]));   //high,low bytes
-       /* if (SCSet.debugmodeDataFromAOG) {
-            Serial.print("got Setting from AOG:  ");
-            for (byte i = 2; i < SCSet.SettingsFromAOGLength; i++)
-            {
-                Serial.print(DataFromAOG[i]);
-                Serial.print(",");
-            }
-            Serial.println();
-        }*/
     }
 
 }
@@ -137,7 +119,7 @@ void AOGDataSend()
         if (SCSet.DataTransVia == 0) { idx = 2; }//8 bytes
         else { idx = 0; }//V4 10 Bytes
         for (idx; idx < DataToAOGLength; idx++) {
-            Serial.write(RelayToAOG[idx]); 
+            Serial.print(RelayToAOG[idx]); 
             if (idx < (DataToAOGLength - 1)) { Serial.print(","); }
         }
         Serial.println();
@@ -150,8 +132,5 @@ void AOGDataSend()
             UDPToAOG.write(RelayToAOG[idx]);
         }
         UDPToAOG.endPacket();  
-        
-        // UDPToAOG.writeTo(RelayToAOG, DataToAOGLength, IPToAOG, SCSet.portDestination);
     }
 }
-

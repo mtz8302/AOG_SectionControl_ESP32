@@ -1,14 +1,14 @@
-// WIFI handling 1. März 2020 for ESP32 and Nano 33 IoT -------------------------------------------
+// WIFI handling 8. März 2020 for ESP32 and Nano 33 IoT -------------------------------------------
 
 
-//here supporting 2 WiFi networks, so send number of network!!
+//here supporting 2 WiFi networks, so set number of network!!
 
-void WiFi_Start_STA(byte NW) {
+void WiFi_Start_STA() {
   unsigned long timeout, timeout2;
 #if HardwarePlatform == 0  //ESP32  
   WiFi.mode(WIFI_STA);   //  Workstation
 #endif
-  if (NW == 2) {
+  if (NetWorkNum == 2) {
 	  WiFi.begin(SCSet.ssid2, SCSet.password2); 
       timeout = millis() + (SCSet.timeoutRouter2 * 1000); 
       timeout2 = timeout - (SCSet.timeoutRouter2 * 500);
@@ -21,36 +21,22 @@ void WiFi_Start_STA(byte NW) {
       timeout2 = timeout - (SCSet.timeoutRouter * 500);
   }
   while (WiFi.status() != WL_CONNECTED && millis() < timeout) {
-    delay(300);
-    Serial.print(".");
-    if ((millis() > timeout2) && (WiFi.status() != WL_CONNECTED)) {
+      delay(300);
+      Serial.print(".");
+      if ((millis() > timeout2) && (WiFi.status() != WL_CONNECTED)) {
 #if HardwarePlatform == 0  //ESP32  
-        WiFi.disconnect();
+          WiFi.disconnect();
 #endif
 #if HardwarePlatform == 1  //nano 33iot 
-        WiFi.end();
+          WiFi.end();
 #endif
-        delay(200);
-        if (NW == 2) {WiFi.begin(SCSet.ssid2, SCSet.password2);}
-        else {WiFi.begin(SCSet.ssid, SCSet.password);}
-        timeout2 = timeout + 100;
-    }
-    //WIFI LED blink in double time while connecting
-    if (!LED_WIFI_ON) {
-        if (millis() > (LED_WIFI_time + (LED_WIFI_pause >> 2))) 
-          {
-           LED_WIFI_time = millis();
-           LED_WIFI_ON = true;
-           digitalWrite(SCSet.LEDWiFi_PIN, !SCSet.LEDWiFi_ON_Level);
-          }
-    }
-    if (LED_WIFI_ON) {
-      if (millis() > (LED_WIFI_time + (LED_WIFI_pulse >> 2))) {
-        LED_WIFI_time = millis();
-        LED_WIFI_ON = false;
-        digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
+          delay(200);
+          if (NetWorkNum == 2) { WiFi.begin(SCSet.ssid2, SCSet.password2); }
+          else { WiFi.begin(SCSet.ssid, SCSet.password); }
+          timeout2 = timeout + 300;
       }
-    }
+      //WIFI LED blink in double time while connecting
+      WiFi_LED_blink(2);
   }  //connected or timeout  
   
   Serial.println(""); //NL  
@@ -59,27 +45,37 @@ void WiFi_Start_STA(byte NW) {
       delay(200);  
       Serial.println();
       Serial.print("WiFi Client successfully connected to : ");
-      if (NW == 2) { Serial.println(SCSet.ssid2); } else { Serial.println(SCSet.ssid); }
+      if (NetWorkNum == 2) { Serial.println(SCSet.ssid2); } else { Serial.println(SCSet.ssid); }
       Serial.print("Connected IP - Address : ");
       IPAddress myip = WiFi.localIP();
       Serial.println(myip);
       IPAddress gwip = WiFi.gatewayIP();
       //after connecting get IP from router -> change it to x.x.x.IP Ending (from settings)
-      myip[3] = SCSet.myIPEnding; //set ESP32 IP to x.x.x.myIP_ending
-      Serial.print("changing IP to: ");
-      Serial.println(myip);
+      if (myip[3] != SCSet.myIPEnding) {
+          myip[3] = SCSet.myIPEnding; //set ESP32 IP to x.x.x.myIP_ending
+          Serial.print("changing IP to: ");
+          Serial.println(myip);
 #if HardwarePlatform == 0  //ESP32 
-      if (!WiFi.config(myip, gwip, SCSet.mask, gwip)) { Serial.println("STA Failed to configure"); }
+          if (!WiFi.config(myip, gwip, SCSet.mask, gwip)) { Serial.println("STA Failed to configure"); }
 #endif
 #if HardwarePlatform == 1  //nano 33iot
-      WiFi.config(myip, gwip, gwip, SCSet.mask );
+          WiFi.config(myip, gwip, gwip, SCSet.mask);
 #endif
-      delay(200);
-      Serial.print("Connected IP - Address : ");
-      myip = WiFi.localIP();
+          delay(200);
+          Serial.print("Connected IP - Address : ");
+          myip = WiFi.localIP();
+      }
+      SCSet.myip[0] = myip[0];
+      SCSet.myip[1] = myip[1];
+      SCSet.myip[2] = myip[2];
+      SCSet.myip[3] = myip[3];
       Serial.println(myip);
       Serial.print("Gateway IP - Address : ");
       Serial.println(gwip);
+      SCSet.gwip[0] = gwip[0];
+      SCSet.gwip[1] = gwip[1];
+      SCSet.gwip[2] = gwip[2];
+      SCSet.gwip[3] = gwip[3];
       SCSet.IPToAOG[0] =myip[0];
       SCSet.IPToAOG[1] = myip[1];
       SCSet.IPToAOG[2] = myip[2];
@@ -165,6 +161,7 @@ void WiFi_Start_AP() {
 
 #endif
 
+
 //-------------------------------------------------------------------------------------------------
 
 void UDP_Start()
@@ -188,28 +185,95 @@ void UDP_Start()
         Serial.println(WiFi.localIP());
         Serial.print(" on port: ");
         Serial.println(SCSet.PortFromAOG);
+        UDP_running = true;
         //getAOGSteerData();
     }
 }
 
 
+//-------------------------------------------------------------------------------------------------
 
 
-
-/* if (UDPFromAOG.begin(SCSet.PortFromAOG))
-    {
-        Serial.print("Section Control UDP Listening to port: ");
-        Serial.println(SCSet.PortFromAOG);
-        Serial.println();
+void WiFi_connection_check() {
+    delay(5);
+    if (WiFi.status() == WL_CONNECTED) {
+        if (SectAuto) {
+            //WIFI LED blink 8x faster while no new data
+            WiFi_LED_blink(3);
+#if HardwarePlatform == 1//nano 33iot
+            pingResult = WiFi.ping(SCSet.gwip);
+            delay(5);
+            Serial.print("no Section control Data, ping to Gateway (ms): "); Serial.print(pingResult);
+            Serial.print("   Watchdog counter: "); Serial.println(WiFiWatchDog);
+            if (pingResult >= 0) { WiFiWatchDog = 0; }
+            else WiFiWatchDog++;
+        }
+        if (WiFiWatchDog > 3) {//reconnect
+            LED_WIFI_ON = false;
+            digitalWrite(SCSet.LEDWiFi_PIN, !SCSet.LEDWiFi_ON_Level);
+            Serial.print("WiFi error: no data for "); Serial.print(currentTime - DataFromAOGTime);
+            Serial.print(" ms. No ping to "); for (byte n = 0; n < 4; n++) { Serial.print(SCSet.gwip[n]); Serial.print("."); }
+            Serial.println();
+            Serial.print("Closing WiFi and try to reconnect to network: ");
+            if (NetWorkNum == 2) { Serial.println(SCSet.ssid2); }
+            else { Serial.println(SCSet.ssid); }
+            WiFi.end();
+            delay(200);
+            delay(200);
+            timeout = millis() + 10000;//close wifi every 10s when no new connection
+            WiFiWatchDog = 0;
+#endif
+        }
+        if (WiFi.localIP()[3] != SCSet.myIPEnding) {
+#if HardwarePlatform == 0  //ESP32 
+            if (!WiFi.config(SCSet.myip, SCSet.gwip, SCSet.mask, SCSet.gwip)) { Serial.println("STA Failed to configure"); }
+#endif
+#if HardwarePlatform == 1//nano 33iot
+            WiFi.config(SCSet.myip, SCSet.gwip, SCSet.gwip, SCSet.mask);
+#endif
+            delay(200);
+            delay(5);
+            Serial.println();
+            Serial.print("WiFi Client connected to : ");
+            if (NetWorkNum == 2) { Serial.println(SCSet.ssid2); }
+            else { Serial.println(SCSet.ssid); }
+            Serial.print("Connected IP - Address : ");
+            Serial.println(WiFi.localIP());
+            WiFiWatchDog = 0;
+        }
+        if (!UDP_running) { UDP_Start(); }
     }
-    delay(50);
-    if (UDPToAOG.begin(SCSet.PortSCToAOG))
-    {
-        Serial.print("UDP writing to IP: ");
-        Serial.print(SCSet.IPToAOG[0]); Serial.print("."); Serial.print(SCSet.IPToAOG[1]);  Serial.print("."); Serial.print(SCSet.IPToAOG[2]);  Serial.print("."); Serial.println(SCSet.IPToAOG[3]);
-        Serial.print("UDP writing to port: ");
-        Serial.println(SCSet.portDestination);
-        Serial.print("UDP writing from port: ");
-        Serial.println(SCSet.PortSCToAOG);
+    else {
+        //Serial.print("Wifi Watchdog: "); Serial.println(WiFiWatchDog);
+        UDP_running = false;
+        digitalWrite(SCSet.LEDWiFi_PIN, !SCSet.LEDWiFi_ON_Level);
+        LED_WIFI_ON = false;
+        WiFiWatchDog++;
+        if (WiFiWatchDog > 50) {
+            WiFiWatchDog = 0;//give router some time to check request
+            if (millis() > timeout) {
+                Serial.println();
+                Serial.print("Closing WiFi and try to reconnect to network: ");
+                if (NetWorkNum == 2) { Serial.println(SCSet.ssid2); }
+                else { Serial.println(SCSet.ssid); }
+#if HardwarePlatform == 0  //ESP32  
+                WiFi.disconnect();
+#endif
+#if HardwarePlatform == 1//nano 33iot
+                WiFi.end();
+#endif
+                delay(200);
+                delay(200);
+#if HardwarePlatform == 0  //ESP32  
+                WiFi.mode(WIFI_STA);   //  Workstation
+#endif
+                timeout = millis() + 10000;//close wifi every 10s when no new connection
+            }
+            //reconnection
+            Serial.print(".");
+            if (NetWorkNum == 2) { WiFi.begin(SCSet.ssid2, SCSet.password2); }
+            else { WiFi.begin(SCSet.ssid, SCSet.password); }
+            delay(10);
+        }
     }
-}*/
+}

@@ -1,10 +1,10 @@
 
 //--------------------------------------------------------------
-//  EEPROM Data Handling 11. Feb 2020
+//  EEPROM Data Handling 11. März 2020
 //--------------------------------------------------------------
 #define EEPROM_SIZE 512
 #define EE_ident1 0xED  // Marker Byte 0 + 1
-#define EE_ident2 0x40
+#define EE_ident2 0x41
 
 
 //--------------------------------------------------------------
@@ -39,12 +39,12 @@ byte EEprom_empty_check() {
 	}
 #endif
 
-	if (EEPROM.read(0) != EE_ident1 || EEPROM.read(1) != EE_ident2)
+	if ((EEPROM.read(0) != EE_ident1) || (EEPROM.read(1) != EE_ident2))
 	{
 		Serial.println("no valid EEPROM data");
 		return 1;  // 1 = is empty
 	}
-	if (EEPROM.read(0) == EE_ident1 && EEPROM.read(1) == EE_ident2)
+	if ((EEPROM.read(0) == EE_ident1) && (EEPROM.read(1) == EE_ident2))
 	{
 		Serial.println("EEPROM data found");
 		return 2;     // data available
