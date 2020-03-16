@@ -1,4 +1,4 @@
-// WIFI handling 8. März 2020 for ESP32 and Nano 33 IoT -------------------------------------------
+// WIFI handling 16. Maerz 2020 for ESP32 and Nano 33 IoT -------------------------------------------
 
 
 //here supporting 2 WiFi networks, so set number of network!!
@@ -47,38 +47,38 @@ void WiFi_Start_STA() {
       Serial.print("WiFi Client successfully connected to : ");
       if (NetWorkNum == 2) { Serial.println(SCSet.ssid2); } else { Serial.println(SCSet.ssid); }
       Serial.print("Connected IP - Address : ");
-      IPAddress myip = WiFi.localIP();
-      Serial.println(myip);
+      IPAddress myIP = WiFi.localIP();
+      Serial.println(myIP);
       IPAddress gwip = WiFi.gatewayIP();
       //after connecting get IP from router -> change it to x.x.x.IP Ending (from settings)
-      if (myip[3] != SCSet.myIPEnding) {
-          myip[3] = SCSet.myIPEnding; //set ESP32 IP to x.x.x.myIP_ending
+      if (myIP[3] != SCSet.myIPEnding) {
+          myIP[3] = SCSet.myIPEnding; //set ESP32 IP to x.x.x.myIP_ending
           Serial.print("changing IP to: ");
-          Serial.println(myip);
+          Serial.println(myIP);
 #if HardwarePlatform == 0  //ESP32 
-          if (!WiFi.config(myip, gwip, SCSet.mask, gwip)) { Serial.println("STA Failed to configure"); }
+          if (!WiFi.config(myIP, gwip, SCSet.mask, gwip)) { Serial.println("STA Failed to configure"); }
 #endif
 #if HardwarePlatform == 1  //nano 33iot
-          WiFi.config(myip, gwip, gwip, SCSet.mask);
+          WiFi.config(myIP, gwip, gwip, SCSet.mask);
 #endif
           delay(200);
           Serial.print("Connected IP - Address : ");
-          myip = WiFi.localIP();
+          myIP = WiFi.localIP();
       }
-      SCSet.myip[0] = myip[0];
-      SCSet.myip[1] = myip[1];
-      SCSet.myip[2] = myip[2];
-      SCSet.myip[3] = myip[3];
-      Serial.println(myip);
+      SCSet.myip[0] = myIP[0];
+      SCSet.myip[1] = myIP[1];
+      SCSet.myip[2] = myIP[2];
+      SCSet.myip[3] = myIP[3];
+      Serial.println(myIP);
       Serial.print("Gateway IP - Address : ");
       Serial.println(gwip);
       SCSet.gwip[0] = gwip[0];
       SCSet.gwip[1] = gwip[1];
       SCSet.gwip[2] = gwip[2];
       SCSet.gwip[3] = gwip[3];
-      SCSet.IPToAOG[0] =myip[0];
-      SCSet.IPToAOG[1] = myip[1];
-      SCSet.IPToAOG[2] = myip[2];
+      SCSet.IPToAOG[0] =myIP[0];
+      SCSet.IPToAOG[1] = myIP[1];
+      SCSet.IPToAOG[2] = myIP[2];
       SCSet.IPToAOG[3] = 255;//set IP to x.x.x.255 according to actual network
       LED_WIFI_ON = true;
       digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
@@ -103,23 +103,30 @@ void WiFi_Start_STA() {
 #if HardwarePlatform == 0 
 void WiFi_Start_AP() {
   WiFi.mode(WIFI_AP);   // Accesspoint
+  delay(5);
   WiFi.softAP(SCSet.ssid_ap, "");
   while (!SYSTEM_EVENT_AP_START) // wait until AP has started
    {
     delay(100);
     Serial.print(".");
    }   
-  delay(100);//right IP adress only with this delay 
+  delay(200);//right IP adress only with this delay 
   WiFi.softAPConfig(SCSet.gwip, SCSet.gwip, SCSet.mask);  // set fix IP for AP  
-
-  IPAddress getmyIP = WiFi.softAPIP();
-  delay(300);
-
-  //AP_time = millis();
+  delay(300);//right IP adress only with this delay 
+  IPAddress myIP = WiFi.softAPIP();
   Serial.print("Accesspoint started - Name : ");
   Serial.println(SCSet.ssid_ap);
   Serial.print( " IP address: ");
-  Serial.println(getmyIP);
+  Serial.println(myIP);
+  SCSet.IPToAOG[0] = myIP[0];
+  SCSet.IPToAOG[1] = myIP[1];
+  SCSet.IPToAOG[2] = myIP[2];
+  SCSet.IPToAOG[3] = 255;//set IP to x.x.x.255 according to actual network
+  SCSet.myip[0] = myIP[0];
+  SCSet.myip[1] = myIP[1];
+  SCSet.myip[2] = myIP[2];
+  SCSet.myip[3] = myIP[3];
+
   LED_WIFI_ON = true;
   digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
   my_WiFi_Mode = WIFI_AP;
@@ -130,33 +137,44 @@ void WiFi_Start_AP() {
 
 #if HardwarePlatform == 1
 void WiFi_Start_AP() {
-
-    my_WiFi_Mode = WiFi.beginAP(SCSet.ssid_ap, "");
+    WiFi.end();
     delay(500);
-    if (my_WiFi_Mode != WL_AP_LISTENING) {
-        Serial.println("Creating access point failed");
-        delay(500);
-        WiFi.end();
-        delay(500);
-        my_WiFi_Mode = WiFi.beginAP(SCSet.ssid_ap, "");
-        if (my_WiFi_Mode != WL_AP_LISTENING) {
-            Serial.println("Creating access point failed");
-        }
-    }
-    delay(300);//right IP adress only with this delay 
-    WiFi.config(SCSet.gwip, SCSet.gwip, SCSet.gwip, SCSet.mask);  // set fix IP for AP  
-    delay(300); 
-    IPAddress getmyIP = WiFi.localIP();
     delay(300);
 
-    //AP_time = millis();
+    WiFi.config(SCSet.gwip, SCSet.gwip, SCSet.gwip, SCSet.mask);// set fix IP for AP  
+    delay(300);  //right IP adress only with this delay
+    byte my_Wifi_mode = WiFi.beginAP(SCSet.ssid_ap);
+    delay(500);
+    delay(300);
+    Serial.print("status of WiFi AP: ");
+    Serial.println(my_Wifi_mode);
+    IPAddress myip = WiFi.localIP();
+    // delay(300);
     Serial.print("Accesspoint started - Name : ");
     Serial.println(SCSet.ssid_ap);
     Serial.print(" IP address: ");
-    Serial.println(getmyIP);
+    Serial.println(myip);
+    SCSet.myip[0] = myip[0];
+    SCSet.myip[1] = myip[1];
+    SCSet.myip[2] = myip[2];
+    SCSet.myip[3] = myip[3];
+    SCSet.IPToAOG[0] = myip[0];
+    SCSet.IPToAOG[1] = myip[1];
+    SCSet.IPToAOG[2] = myip[2];
+    SCSet.IPToAOG[3] = 255;//set IP to x.x.x.255 according to actual network    
+
+    myip = WiFi.gatewayIP();
+    Serial.print("Gateway IP - Address : ");
+    Serial.println(myip);
+    SCSet.gwip[0] = myip[0];
+    SCSet.gwip[1] = myip[1];
+    SCSet.gwip[2] = myip[2];
+    SCSet.gwip[3] = myip[3];
+    delay(50);
+
     LED_WIFI_ON = true;
     digitalWrite(SCSet.LEDWiFi_PIN, SCSet.LEDWiFi_ON_Level);
-    my_WiFi_Mode = WiFi.status();
+    my_WiFi_Mode = 2;
 }
 
 #endif
@@ -182,7 +200,10 @@ void UDP_Start()
     if (UDPFromAOG.begin(SCSet.PortFromAOG))
     {
         Serial.print("UDP listening for AOG data on IP: ");
-        Serial.println(WiFi.localIP());
+        for (byte n = 0; n < 4; n++) {
+            Serial.print(SCSet.myip[n]);
+            Serial.print(".");
+        }
         Serial.print(" on port: ");
         Serial.println(SCSet.PortFromAOG);
         UDP_running = true;

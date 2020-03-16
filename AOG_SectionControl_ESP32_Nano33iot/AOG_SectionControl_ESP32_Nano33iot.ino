@@ -6,28 +6,28 @@ struct Storage {
 	
 	uint8_t DataTransVia = 1;         //transfer data via 0: USB, 1: WiFi, 4: USB 10 byte format for AOG V4
 									   
-	uint8_t LEDWiFi_PIN = 5; //13;         // WiFi Status LED 0 = off
-	uint8_t LEDWiFi_ON_Level = 0;     // 1 = HIGH = LED on high, 0 = LOW = LED on low
+	uint8_t LEDWiFi_PIN = 5;//13;          // WiFi Status LED 0 = off
+	uint8_t LEDWiFi_ON_Level = 1;     // 1 = HIGH = LED on high, 0 = LOW = LED on low
 
 	//WiFi---------------------------------------------------------------------------------------------
 	//tractors WiFi
-	char ssid[24] = "Fendt_209V";// "Deutz_6006";            // WiFi network Client name
+	char ssid[24] = "GPS_unit_ESP_M8T";       // WiFi network Client name
 	char password[24] = "";                   // WiFi network password//Accesspoint name and password
-	char ssid2[24] = "GPS_unit_ESP_M8T";      // WiFi network Client name
+	char ssid2[24] = "Deutz_6006";            // WiFi network Client name
 	char password2[24] = "";                  // WiFi network password//Accesspoint name and password
 	char ssid_ap[24] = "SectionControlNet";   // name of Access point, if no WiFi found, no password!!
-	uint8_t timeoutRouter = 20;               //time (s) to search for existing WiFi, than starting Accesspoint 
-	uint8_t timeoutRouter2 = 20;              //time (s) to search for existing WiFi, than starting Accesspoint 
+	uint8_t timeoutRouter = 30;               // time (s) to search for existing WiFi, than starting Accesspoint 
+	uint8_t timeoutRouter2 = 10;              // time (s) to search for existing WiFi, than starting Accesspoint 
 	//static IP
 	uint8_t myip[4] = { 192, 168, 1, 71 };    // section control module; in DHCP Network replaced by x.x.x.71 = myIPEnding
 	uint8_t gwip[4] = { 192, 168, 1, 1 };     // Gateway IP also used if Accesspoint created; in DHCP network replaced by networks GW IP
 	uint8_t mask[4] = { 255, 255, 255, 0 };
 	uint8_t IPToAOG[4] = { 192,168,1,255 };   // 255 = broadcast; in DHCP Network replaced by x.x.x.255
 	uint8_t myIPEnding = 71;
-	uint16_t PortSCToAOG = 5555;              //this is port of this module: Autosteer = 5577 IMU = 5566 Section Control = 5555 GPS = 5544
+	uint16_t PortSCToAOG = 5555;              // this is port of this module: Autosteer = 5577 IMU = 5566 Section Control = 5555 GPS = 5544
 	uint16_t PortFromAOG = 8888;              // port to listen for AOG
 	uint16_t portDestination = 9999;          // Port of AOG that listens
-	uint16_t BaudRate = 38400;                //Baudrate = speed of serial port or USB or Bluetooth. AOG uses 38400 for UART
+	uint16_t BaudRate = 38400;                // Baudrate = speed of serial port or USB or Bluetooth. AOG uses 38400 for UART
 
 //the following lines should be configed by the user to fit the programm to the sprayer/ESP32
 //GPIOs of the ESP32 (current setting is for the layout shown as example WIKI)
@@ -55,22 +55,22 @@ struct Storage {
 	uint8_t SectNum = 6;	                    // number of sections equiped max 16 (in AOG)
 	uint8_t SectRelaysEquiped = 1;				    //relays for SC output are equiped (0=no output, only documentation)
 	uint8_t SectRelaysON = 1;					        //relays spray on 1 or 0 (high or low)
-	uint8_t Relay_PIN[16] =  { 15,2,4,16,17,255,18,19,21,255,255,255,255,255,255,255 };		//GPIOs of ESP32 OUT to sections of sprayer HIGH/3.3V = ON
-                               //            { 10,9,8,7,6,5,255,255,255,255,255,255,255,255,255,255 }; //Relay pin set for nano 33 iot: 
+	uint8_t Relay_PIN[16] = { 15,2,4,16,17,255,18,19,21,255,255,255,255,255,255,255 };   		//GPIOs of ESP32 OUT to sections of sprayer HIGH/3.3V = ON
+                          //Relay pin set for nano 33 iot: { 10,9,8,7,6,5,255,255,255,255,255,255,255,255,255,255 };     
 	uint8_t SectSWEquiped = 1;					      //1 if section input switches are equiped, else: 0	
-	uint8_t SectSW_PIN[16] = { 13,12,14,27,26,25,33,255,255,255,255,255,255,255,255,255 };  //section switches to GPIOs of ESP32 GND = section off, open/+3.3V section auto/on
-                                     //     { A0,A1,A2,A3,A4,A5,3,255,255,255,255,255,255,255,255,255 };  //Switch pin set for nano 33 iot:
+	uint8_t SectSW_PIN[16] = { 13,12,14,27,26,25,33,255,255,255,255,255,255,255,255,255 };   //section switches to GPIOs of ESP32 GND = section off, open/+3.3V section auto/on
+                          //Switch pin set for nano 33 iot: { A0,A1,A2,A3,A4,A5,3,255,255,255,255,255,255,255,255,255 };
 	uint8_t	SectMainSWType = 1;						    // 0 = not equiped 1 = (ON)-OFF-(ON) toggle switch or push buttons 2 = connected to hitch level sensor 3 = inverted hitch level sensor
-	uint16_t	HitchLevelVal = 500;//2000;					  // Value for hitch level: switch AOG section control to Auto if lower than... ESP:2000 nano 500
-	uint8_t	SectMainSW_PIN = 32;//A7;					//ESP32 to AOG Main auto toggle switch open=nothing/AOG button GND=OFF +3,3=AOG Auto on	OR connected to hitch level sensor	
+	uint16_t	HitchLevelVal = 2000;//	500;	  // Value for hitch level: switch AOG section control to Auto if lower than... ESP:2000 nano 500
+	uint8_t	SectMainSW_PIN = 32;//A7;					// ESP32 to AOG Main auto toggle switch open=nothing/AOG button GND=OFF +3,3=AOG Auto on	OR connected to hitch level sensor	
 		uint8_t	SectAutoManSW_PIN = 39;//4;			// Main Auto/Manual switch 39:!!no internal pullup!!
 
 	uint8_t DocumentationOnly = 0;					  // 0: use as section control, 1: Documentation only = AOG writes the state of the input switches
 	uint8_t DocSwitchSprayOn = LOW;
 
 	uint8_t DataToAOGHeader[2] = { 127,249 }, DataFromAOGHeader[2] = { 127, 250 }, SettingsFromAOGHeader[2] = { 127,248 }, n = 0xF8;
-	uint8_t DataToAOGLength = 10;             //items per UDP packet
-	uint8_t DataFromAOGLength = 10;           //items comming from AOG 
+	uint8_t DataToAOGLength = 10;             // items per UDP packet
+	uint8_t DataFromAOGLength = 10;           // items comming from AOG 
 	uint8_t SettingsFromAOGLength = 10;
 
 	bool debugmode = false;
@@ -331,7 +331,7 @@ void loop() {
 	currentTime = millis();
 
 	//check if data is comming in as it should
-	if ((currentTime > (DataFromAOGTime + 350)) && (DataFromAOGTime > 0)) {
+	if ((currentTime > (DataFromAOGTime + 500)) && (DataFromAOGTime > 0)) {
 		if (SectAuto) { WiFi_LED_blink(3); }
 		else { WiFi_LED_blink(0); }
 

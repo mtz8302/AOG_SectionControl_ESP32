@@ -10,14 +10,14 @@ void motorDrive(void)
 		if (SCSet.RateControlPWM == 0)
 		{	//if rate switch is toggled -> set Output high
 			if (RateManUpLeft) { 
-				digitalWrite(SCSet.FlowDirLeft_PIN, HIGH); digitalWrite(SCSet.FlowPWMLeft_PIN, LOW); 
+				digitalWrite(SCSet.FlowDirLeft_PIN, HIGH); digitalWrite(SCSet.FlowPWMLeft_PIN, HIGH); 
 				if (SCSet.debugmode || SCSet.debugmodeRelay) { Serial.println("Rate left manual up"); }
 				}
 			if (RateManDownLeft) {
 				digitalWrite(SCSet.FlowDirLeft_PIN, LOW); digitalWrite(SCSet.FlowPWMLeft_PIN, HIGH);
 				if (SCSet.debugmode || SCSet.debugmodeRelay) { Serial.println("Rate left manual down"); }
 			}
-			if (RateManUpRight) { digitalWrite(SCSet.FlowDirRight_PIN, HIGH); digitalWrite(SCSet.FlowPWMRight_PIN, LOW); }
+			if (RateManUpRight) { digitalWrite(SCSet.FlowDirRight_PIN, HIGH); digitalWrite(SCSet.FlowPWMRight_PIN, HIGH); }
 			if (RateManDownRight) { digitalWrite(SCSet.FlowDirRight_PIN, LOW); digitalWrite(SCSet.FlowPWMRight_PIN, HIGH); }
 			//toggle switch not pressed = set all low
 			if (!(RateManUpLeft | RateManDownLeft | RateManUpRight | RateManDownRight))

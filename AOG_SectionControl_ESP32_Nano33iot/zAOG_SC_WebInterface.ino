@@ -186,7 +186,7 @@ void process_Request()
             Pick_Text(SCSet.password2, &HTML_String[myIndex], 24);
         }
         int tempint = Pick_Parameter_Zahl("timeoutRout2=", HTML_String);
-        if ((tempint >= 20) && (tempint <= 1000)) { SCSet.timeoutRouter2 = tempint; }
+        if ((tempint >= 1) && (tempint <= 1000)) { SCSet.timeoutRouter2 = tempint; }
         EEprom_write_all();
     }
     if (action == ACTION_SET_DataTransfVia) {
@@ -442,7 +442,7 @@ void make_HTML01() {
     strcat(HTML_String, "<tr>");
     strcat(HTML_String, "<td colspan=\"3\">time, trying to connect to network #2</td></tr>");
     strcat(HTML_String, "<td colspan=\"3\">after time has passed access point is opened</td></tr>");
-    strcat(HTML_String, "<tr><td><b>#2 Timeout (s):</td><td><input type = \"number\"  name = \"timeoutRout2\" min = \"20\" max = \"1000\" step = \"1\" style= \"width:200px\" value = \"");// placeholder = \"");
+    strcat(HTML_String, "<tr><td><b>#2 Timeout (s):</td><td><input type = \"number\"  name = \"timeoutRout2\" min = \"1\" max = \"1000\" step = \"1\" style= \"width:200px\" value = \"");// placeholder = \"");
     strcati(HTML_String, SCSet.timeoutRouter2);
     strcat(HTML_String, "\"></td>");
     strcat(HTML_String, "</tr>");
