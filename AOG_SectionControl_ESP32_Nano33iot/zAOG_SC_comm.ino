@@ -88,7 +88,6 @@ void getDataFromAOG()
         //[6] tree
         //[7] hydraulik lift
         //reset watchdog as we just heard from AgOpenGPS
-        watchdogTimer = 0;
         DataFromAOGTime = millis();
     }
 #if HardwarePlatform == 1 //nano33iot

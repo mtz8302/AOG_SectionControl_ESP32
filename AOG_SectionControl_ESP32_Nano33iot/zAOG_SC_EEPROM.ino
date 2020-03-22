@@ -1,6 +1,6 @@
 
 //--------------------------------------------------------------
-//  EEPROM Data Handling 11. März 2020
+//  EEPROM Data Handling 11. Mï¿½rz 2020
 //--------------------------------------------------------------
 #define EEPROM_SIZE 512
 #define EE_ident1 0xED  // Marker Byte 0 + 1
@@ -142,4 +142,3 @@ void EEprom_show_memory() {
 		c2++;
 	}
 }
-

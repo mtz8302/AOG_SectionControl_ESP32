@@ -216,17 +216,18 @@ void UDP_Start()
 
 
 void WiFi_connection_check() {
-    delay(5);
+    delay(2);
     if (WiFi.status() == WL_CONNECTED) {
         if (SectAuto) {
             //WIFI LED blink 8x faster while no new data
             WiFi_LED_blink(3);
 #if HardwarePlatform == 1//nano 33iot
             pingResult = WiFi.ping(SCSet.gwip);
-            delay(5);
+            delay(1);
             Serial.print("no Section control Data, ping to Gateway (ms): "); Serial.print(pingResult);
             Serial.print("   Watchdog counter: "); Serial.println(WiFiWatchDog);
-            if (pingResult >= 0) { WiFiWatchDog = 0; }
+            if (pingResult >= 0) { WiFiWatchDog = 0; PingToNetworkLastTime = millis();
+            }
             else WiFiWatchDog++;
         }
         if (WiFiWatchDog > 3) {//reconnect

@@ -24,7 +24,7 @@ int Aufruf_Zaehler = 0;
 int action;
 
 //-------------------------------------------------------------------------------------------------
-// 11. Maerz 2020
+// 22. Maerz 2020
 
 void doWebInterface() {
 
@@ -52,7 +52,7 @@ void doWebInterface() {
     //htmlPtr = 0;
     char c;
     if (client_page) {                        // if you get a client,
-      //Serial.print("New Client.\n");                   // print a message out the serial port
+        WebInterfaceTimeOut = millis() + 60000; //keep webinterface accessable for more 60 sec                  
         String currentLine = "";                // make a String to hold incoming data from the client
         while (client_page.connected()) {       // loop while the client's connected
             delay(0);
@@ -325,7 +325,7 @@ void make_HTML01() {
     strcat(HTML_String, "Section control software for AgOpenGPS <br>");
     strcat(HTML_String, "supports data via USB / WiFi UDP <br>");
     strcat(HTML_String, "more settings like IPs, UPD ports... in setup zone of INO code<br>");
-    strcat(HTML_String, "(Rev. 4.0 by MTZ8302 Webinterface by WEDER)<br><br><hr>");
+    strcat(HTML_String, "(Rev. 4.01 by MTZ8302 Webinterface by WEDER)<br><br><hr>");
 
 
     //---------------------------------------------------------------------------------------------  
