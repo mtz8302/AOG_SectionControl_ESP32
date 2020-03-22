@@ -1,6 +1,6 @@
 # AOG_Section_control
 
-<b>Section Control running on ESP32 or Arduino 33 iot for AgOpenGPS PC Software.
+<b>Section Control running on ESP32 or Arduino 33 iot for AgOpenGPS PC Software.<br>
 Nano33iot has sometimes connection to WiFi problems, caused by WiFi libary, so prefer ESP32
           
 Supports: <br>- Section control, 16 sections
