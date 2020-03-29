@@ -36,3 +36,9 @@ For the outputs use a driver like UDN2981(relais have common GND and UDN does +)
 Remark on non booting ESP32: they don't like raising input voltage when powering your step down 3,3V power source. To keep them in reset, put a 10uF electrolytic capacitor to reset - GND and another one EN - GND. So the enable and the reset pin will be LOW until power is stable. With this they will boot.
 
 NO rate control in AOG V4 at the moment (not supported by AOG)
+
+Suggestion for documentation only: https://agopengps.discourse.group/t/section-control-documentation-for-ferilizer-spreader/1360
+
+Suggestion for upgrading Mueller spray controller: https://agopengps.discourse.group/t/muller-spray-controll-with-motor-valves/1303
+
+Video how to use switches: https://youtu.be/kI321iBwe4U
