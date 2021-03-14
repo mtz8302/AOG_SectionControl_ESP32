@@ -1,8 +1,7 @@
 # AOG_Section_control
 
-<b>Section Control running on ESP32 or Arduino nano 33 iot for AgOpenGPS PC Software.<br>
-Nano33iot has sometimes WiFi connection problems, caused by WiFi libary and to less HP, so prefer ESP32.
-For existing Nano boards, the Upgrade to Nano33iot, to get WiFi is a good solution. 
+<b>Section Control running on ESP32 for AgOpenGPS PC Software.<br>
+For existing Nano boards, the Upgrade to Nano33iot, to get WiFi is a good solution. Use code for Nano33IoT in other repository.
           
 Supports: <br>- Section control, 16 sections
           <br>- hardware input switches (Main ON/OFF, OFF/Auto/ON for each section, +/- pressure (only motor driven, no rate control in V4 so far))
