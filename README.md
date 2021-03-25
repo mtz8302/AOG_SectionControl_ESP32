@@ -1,6 +1,8 @@
 # AOG_Section_control
 
-<b>Section Control running on ESP32 for AgOpenGPS PC Software.<br>
+<b>Section Control running on ESP32 for AgOpenGPS PC Software.<br><br>
+Multi version code: supports V 4.3.10 (=version code 17) and V5.x.20 (=version code 20)<br>
+          
 For existing Nano boards, the Upgrade to Nano33iot, to get WiFi is a good solution. Use code for Nano33IoT in other repository.
           
 Supports: <br>- Section control, 16 sections
@@ -34,7 +36,7 @@ For the outputs use a driver like UDN2981(relais have common GND and UDN does +)
 
 Remark on non booting ESP32: they don't like raising input voltage when powering your step down 3,3V power source. To keep them in reset, put a 10uF electrolytic capacitor to reset - GND and another one EN - GND. So the enable and the reset pin will be LOW until power is stable. With this they will boot.
 
-NO rate control in AOG V4 at the moment (not supported by AOG)
+NO rate control in this code at the moment (not supported by AOG)
 
 Suggestion for documentation only: https://agopengps.discourse.group/t/section-control-documentation-for-ferilizer-spreader/1360
 
