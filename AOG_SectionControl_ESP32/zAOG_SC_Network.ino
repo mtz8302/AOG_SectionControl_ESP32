@@ -429,13 +429,13 @@ void Eth_handle_connection(void* pvParameters) {
                 Eth_connect_step++;
                 break;
             }//switch
+        }    
+        if ((Eth_connect_step > 240) || (Eth_connect_step == 0)) {
+            Serial.println("closing Ethernet connection task");
+            delay(1);
+            vTaskDelete(NULL);
+            delay(1);
         }
-    }
-    if ((Eth_connect_step > 240) || (Eth_connect_step == 0)) {
-        Serial.println("closing Ethernet connection task");
-        delay(1);
-        vTaskDelete(NULL);
-        delay(1);
     }
 }
 
