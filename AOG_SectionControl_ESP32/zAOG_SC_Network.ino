@@ -164,6 +164,7 @@ void WiFi_handle_connection(void* pvParameters) {
                 Serial.println(Set.PortFromAOG);
                 Serial.println();
                 delay(2);
+                WiFiUDPRunning = true;
                 WiFi_connect_step = 100;
                 break;
 
