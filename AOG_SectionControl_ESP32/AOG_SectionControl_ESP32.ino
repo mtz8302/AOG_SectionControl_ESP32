@@ -358,7 +358,7 @@ void setup()
 	if (Set.DataTransVia < 5) {//USB
 		xTaskCreate(getDataFromAOGUSB, "DataFromAOGHandleUSB", 5000, NULL, 1, &taskHandle_DataFromAOGUSB);
 	}
-	else {
+	else {//get data task for WiFi not needed, as async UDP
 		if (Set.DataTransVia == 10) {//Ethernet UDP
 			xTaskCreate(getDataFromAOGEth, "DataFromAOGHandleEth", 5000, NULL, 1, &taskHandle_DataFromAOGEth);
 		}
@@ -369,7 +369,21 @@ void setup()
 	xTaskCreate(WiFi_LED_blink_and_Connection_check, "WiFiLEDBlink", 3072, NULL, 0, &taskHandle_LEDBlink);
 	delay(500);
 
-	vTaskDelay(2000); //waiting for other tasks to start
+	vTaskDelay(500); //waiting for other tasks to start
+
+	if (Set.DataTransVia > 5) {//waiting for other tasks to start (6 s) and read switches at 4 Hz
+		for (byte i = 0; i < 24; i++) {
+			//switches -> set relais
+			if ((Set.SectSWInst) || (Set.SectMainSWType != 0)) { SectSWRead(); }
+			SetRelays();
+
+			//Rate switches and motor drive
+			if ((Set.RateSWLeftInst == 1) || (Set.RateSWRightInst == 1)) { RateSWRead(); }
+			if (Set.RateControlLeftInst == 0) { motorDrive(); } //if Manual do everytime, not only in timed loop
+
+			vTaskDelay(250);
+		}
+	}
 
 }  //end setup
 
