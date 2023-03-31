@@ -266,7 +266,10 @@ void process_Request()
 			temInt = WiFi_Server.arg(n).toInt();
 			Set.Eth_mac[5] = byte(temInt);
 		}
-
+		if (WiFi_Server.argName(n) == "AgIOHeartBeat") {
+			if (WiFi_Server.arg(n) == "true") { Set.AgIOHeartbeat_answer = 1; }
+			else { Set.AgIOHeartbeat_answer = 0; }
+		}
 		if (WiFi_Server.argName(n) == "DataTransfVia") {
 			temLong = WiFi_Server.arg(n).toInt();
 			if ((temLong <= 20) && (temLong >= 0)) { Set.DataTransVia = byte(temLong); }
@@ -282,15 +285,10 @@ void process_Request()
 					xTaskCreate(getDataFromAOGUSB, "DataFromAOGHandleUSB", 5000, NULL, 1, &taskHandle_DataFromAOGUSB);
 					delay(500);
 				}
-				if (WiFiDataTaskRunning) { vTaskDelete(taskHandle_DataFromAOGWiFi); delay(5); WiFiDataTaskRunning = false; }
 				if (EthDataTaskRunning) { vTaskDelete(taskHandle_DataFromAOGEth); delay(5); EthDataTaskRunning = false; }
 			}
 			else {
 				if (Set.DataTransVia < 10) {//WiFi UDP
-					if (!WiFiDataTaskRunning) {
-						xTaskCreate(getDataFromAOGWiFi, "DataFromAOGHandleWiFi", 5000, NULL, 1, &taskHandle_DataFromAOGWiFi);
-						delay(500);
-					}
 					if (USBDataTaskRunning) { vTaskDelete(taskHandle_DataFromAOGUSB); delay(5); USBDataTaskRunning = false; }
 					if (EthDataTaskRunning) { vTaskDelete(taskHandle_DataFromAOGEth); delay(5); EthDataTaskRunning = false;	}
 				}
@@ -300,49 +298,12 @@ void process_Request()
 							xTaskCreate(getDataFromAOGEth, "DataFromAOGHandleEth", 5000, NULL, 1, &taskHandle_DataFromAOGEth);
 						delay(500);
 						}
-						if (WiFiDataTaskRunning) { vTaskDelete(taskHandle_DataFromAOGWiFi); delay(5); WiFiDataTaskRunning = false;}
 						if (USBDataTaskRunning) { vTaskDelete(taskHandle_DataFromAOGUSB); delay(5); USBDataTaskRunning = false;	}
 					}
 				}
 			}			
 		}
 					
-		if (WiFi_Server.argName(n) == "aogVer") {
-			argVal = WiFi_Server.arg(n).toInt();
-			if ((argVal >= 0) && (argVal <= 255)) {
-				Set.aogVersion = byte(argVal);
-				if (Set.aogVersion == 17) {
-					SCToAOG[0] = FromAOGSentenceHeader[2];
-					SCToAOGOld[0] = FromAOGSentenceHeader[2];
-					SCToAOG[1] = SCDataToAOGHeaderV17;
-					SCToAOGOld[1] = SCDataToAOGHeaderV17;
-					SCToAOG[2] = 0;
-					SCToAOGOld[2] = 0;
-					SCToAOG[3] = 0;
-					SCToAOGOld[3] = 0;
-					SCToAOG[4] = 0;
-					SCToAOGOld[4] = 0;
-					SCToAOG[5] = 0;
-					SCToAOGOld[5] = 0;
-					SCToAOG[6] = 0;
-					SCToAOGOld[6] = 0;
-					DataToAOGLength = SCDataSentenceToAOGLengthV17;
-				}
-				else {
-					SCToAOG[0] = FromAOGSentenceHeader[0];   //0x80
-					SCToAOG[1] = FromAOGSentenceHeader[1];   //0x81
-					SCToAOG[2] = FromSCHeader;				 //0x7B
-					SCToAOG[3] = SCDataToAOGHeader;			 //0xEA
-					SCToAOG[4] = SCDataSentenceToAOGLength - 6; //length of data = all - header - length - CRC
-					SCToAOGOld[0] = FromAOGSentenceHeader[0];
-					SCToAOGOld[1] = FromAOGSentenceHeader[1];
-					SCToAOGOld[2] = FromSCHeader;
-					SCToAOGOld[3] = SCDataToAOGHeader;
-					SCToAOG[4] = SCDataSentenceToAOGLength - 6;
-					DataToAOGLength = SCDataSentenceToAOGLength;
-				}
-			}
-		}
 		if (WiFi_Server.argName(n) == "SectNum") {
 			argVal = WiFi_Server.arg(n).toInt();
 			if ((argVal >= 1) && (argVal <= 100)) { Set.SectNum = byte(argVal); }
@@ -587,7 +548,7 @@ void make_HTML01() {
 	strcat(HTML_String, "><label for=\"JZ\">Ethernet (UDP) Ethernet hardware needed!!</label></td></tr>");
 	strcat(HTML_String, "</table>");
 	strcat(HTML_String, "</form><br><hr>");
-
+/* 
 	//-----------------------------------------------------------------------------------------
     // AOG Version
 
@@ -609,7 +570,7 @@ void make_HTML01() {
 	strcat(HTML_String, "</form><br><hr>");
 
 
-	/*   //---------------------------------------------------------------------------------------------
+	  //---------------------------------------------------------------------------------------------
 	   // WiFi LED light on high/low
 	   strcat(HTML_String, "<h2>WiFi LED light on</h2>");
 	   strcat(HTML_String, "<form>");
@@ -634,6 +595,26 @@ void make_HTML01() {
 	   strcat(HTML_String, "</form>");
 	   strcat(HTML_String, "<br><hr>");
 	   */
+
+	//---------------------------------------------------------------------------------------------
+    // Send AgIO heartbeat answer
+
+	strcat(HTML_String, "<h2>AgIO heartbeat</h2>");
+	strcat(HTML_String, "<form>");
+	strcat(HTML_String, "<table>");
+	set_colgroup(150, 400, 150, 0, 0);
+	strcat(HTML_String, "<tr> <td colspan=\"3\">Send autosteer heartbeat to AgIO. Not recommended when using WiFi, the IP is always send.</td> </tr>");
+	//strcat(HTML_String, "<tr><td></td><td><input type=\"checkbox\" onclick=\"sendVal('/?debugmodeDatFromAOG='+this.checked)\" name=\"debugmodeDatFromAOG\" id = \"Part\" value = \"1\" ");
+	strcat(HTML_String, "<tr><td></td><td><input type=\"checkbox\" onclick=\"sendVal('/?AgIOHeartBeat='+this.checked)\" name=\"AgIOHeartBeat\" id = \"Part\" value = \"1\" ");
+	if (Set.AgIOHeartbeat_answer == 1) { strcat(HTML_String, "checked "); }
+	strcat(HTML_String, "> ");
+	strcat(HTML_String, "<label for =\"Part\"> send autosteer heartbeat</label></td>");
+	strcat(HTML_String, "<td><input type= \"button\" onclick= \"sendVal('/?Save=true')\" style= \"width:120px\" value=\"Save\"></button></td>");
+
+	strcat(HTML_String, "</table>");
+	strcat(HTML_String, "</form>");
+	strcat(HTML_String, "<br><hr>");
+
 
 	//---------------------------------------------------------------------------------------------  
 	// Number of sections

@@ -33,20 +33,19 @@ void assignGPIOs() {
 		Serial.println("no rate control right: no PIN set for flowmeter, or for PWM outout");
 		Set.RateControlRightInst = false;
 	}
+
 	if (Set.FlowDirLeft_PIN < 255) { pinMode(Set.FlowDirLeft_PIN, OUTPUT); }
 	if (Set.FlowPWMLeft_PIN < 255) { pinMode(Set.FlowPWMLeft_PIN, OUTPUT); }
 	if (Set.FlowDirRight_PIN < 255) { pinMode(Set.FlowDirRight_PIN, OUTPUT); }
 	if (Set.FlowPWMRight_PIN < 255) { pinMode(Set.FlowPWMRight_PIN, OUTPUT); }
 
-	if (Set.SectMainSW_PIN < 255) { pinMode(Set.Relais_MainValve_PIN, OUTPUT); }
+	if (Set.Relais_MainValve_PIN < 255) { pinMode(Set.Relais_MainValve_PIN, OUTPUT); }
 
 	RelayOUT[0] = 0;
 	RelayOUT[1] = 0;
 	SetRelays();
 
 	if (Set.LEDWiFi_PIN != 255) { pinMode(Set.LEDWiFi_PIN, OUTPUT); }
-
-
 
 
 	/* good, but won't work with hitch level sensor or switch connected with hitch
@@ -81,6 +80,7 @@ void assignGPIOs() {
 		}//for
 		if (no > 4) { Set.RateSWRightInst = false; RateSWRightVal = 500; }
 	}
+
 //#endif
 
 

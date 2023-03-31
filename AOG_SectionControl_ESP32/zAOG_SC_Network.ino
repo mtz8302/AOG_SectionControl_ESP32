@@ -1,9 +1,11 @@
 // WIFI handling 7. Maerz 2021 for ESP32  -------------------------------------------
 
 void WiFi_handle_connection(void* pvParameters) {
+    task_WiFiConnectRunning = true;
     if (Set.DataTransVia > 10) { vTaskDelay(5000); } //start Ethernet first, if needed for data transfer
     for (;;) {
         if (WiFi_connect_step == 0) {
+            task_WiFiConnectRunning = false;
             if (Set.debugmode) { Serial.println("closing WiFi connection task"); }
             delay(1);
             vTaskDelete(NULL);
@@ -18,6 +20,37 @@ void WiFi_handle_connection(void* pvParameters) {
 
             if (Set.debugmode) { Serial.print("WiFi_connect_step: "); Serial.println(WiFi_connect_step); }
             switch (WiFi_connect_step) {
+            case 1:
+                //check WiFi
+                if (Ping.ping(Set.WiFi_gwip)) { //WiFi is available, retry to connect NTRIP
+                //    Ntrip_restart = 1;
+                    WiFi_connect_step = 0;
+                    /*      if ((Set.NtripClientBy == 2) && (!task_NTRIP_Client_running)) {
+                              {
+                                  xTaskCreatePinnedToCore(NTRIP_Client_Code, "Core1", 3072, NULL, 1, &taskHandle_WiFi_NTRIP, 1);
+                                  delay(500);
+                              }
+                          }*/
+                }
+                else { WiFi_connect_step = 4; }//no network
+                break;
+                //close Webserver, UDP ...
+            case 4:
+                WiFi_netw_nr = 0;
+                if (WebIORunning) {
+                    WiFi_Server.close();
+                    WebIORunning = false;
+                }
+                WiFiUDPRunning = false;
+                WiFi_connect_step++;
+                break;
+                //turn WiFi off
+            case 5:
+                WiFi.mode(WIFI_OFF);
+                WiFi_network_search_timeout = 0;
+                WiFi_connect_step = 10;
+                break;
+
                 //WiFi network scan
             case 10:
                 WiFi_netw_nr = 0;
@@ -111,31 +144,33 @@ void WiFi_handle_connection(void* pvParameters) {
                 break;
 
                 //UDP
-            case 20://init WiFi UDP sending to AOG
-                if (WiFiUDPToAOG.begin(Set.PortSCToAOG))
-                {
+            case 20://init WiFi UDP listening to AOG
+                if (WiFiUDPFromAOG.listen(Set.PortFromAOG)) {
                     Serial.print("UDP writing to IP: ");
                     Serial.println(WiFi_ipDestination);
                     Serial.print("UDP writing to port: ");
                     Serial.println(Set.PortDestination);
                     Serial.print("UDP writing from port: ");
                     Serial.println(Set.PortSCToAOG);
+                    Serial.print("UDP listening to AOG port: ");
+                    Serial.println(Set.PortFromAOG);
                 }
-                else { Serial.println("Error starting UDP"); }
+                else { Serial.println("Error starting WiFi UDP "); }
                 WiFi_connect_step++;
                 break;
             case 21:
-                //init WiFi UPD listening to AOG 
-                if (WiFiUDPFromAOG.begin(Set.PortFromAOG))
-                {
-                    Serial.print("WiFi UDP Listening for AOG data to port: ");
-                    Serial.println(Set.PortFromAOG);
-                    Serial.println();
-                    WiFiUDPRunning = true;
-                }
-                else { Serial.println("Error starting UDP"); }
-                delay(2);
-
+                // UDP message from AgIO packet handling
+                WiFiUDPFromAOG.onPacket([](AsyncUDPPacket packet)
+                    {//write data into array
+                        unsigned int packetLength;
+                        byte nextincommingBytesArrayNr = (incommingBytesArrayNr + 1) % incommingDataArraySize;
+                        for (unsigned int i = 0; i < packet.length(); i++) {
+                            incommingBytes[nextincommingBytesArrayNr][i] = packet.data()[i];
+                        }
+                        incommingDataLength[nextincommingBytesArrayNr] = packet.length();
+                        incommingBytesArrayNr = nextincommingBytesArrayNr;
+                    });  // end of onPacket call
+                WiFiUDPRunning = true;
                 WiFi_connect_step = 100;
                 break;
 
@@ -147,23 +182,32 @@ void WiFi_handle_connection(void* pvParameters) {
             case 51:
                 if (my_WiFi_Mode == 2) { WiFi_connect_step++; }
                 break;
-            case 52://init WiFi UDP sending to AOG
-                WiFiUDPToAOG.begin(Set.PortSCToAOG);
-                Serial.print("UDP writing to IP: ");
-                Serial.println(WiFi_ipDestination);
-                Serial.print("UDP writing to port: ");
-                Serial.println(Set.PortDestination);
-                Serial.print("UDP writing from port: ");
-                Serial.println(Set.PortSCToAOG);
+            case 52://init WiFi UDP listening to AOG
+                if (WiFiUDPToAOG.listen(Set.PortSCToAOG)) {
+                    Serial.print("UDP writing to IP: ");
+                    Serial.println(WiFi_ipDestination);
+                    Serial.print("UDP writing to port: ");
+                    Serial.println(Set.PortDestination);
+                    Serial.print("UDP writing from port: ");
+                    Serial.println(Set.PortSCToAOG);
+                    Serial.print("UDP listening to port: ");
+                    Serial.println(Set.PortFromAOG);
+                }
+                else { Serial.println("Error starting WiFi UDP"); }
                 WiFi_connect_step++;
                 break;
             case 53:
-                //init WiFi UPD listening to AOG 
-                WiFiUDPFromAOG.begin(Set.PortFromAOG);
-                Serial.print("NTRIP WiFi UDP Listening to port: ");
-                Serial.println(Set.PortFromAOG);
-                Serial.println();
-                delay(2);
+                // UDP message from AgIO packet handling
+                WiFiUDPFromAOG.onPacket([](AsyncUDPPacket packet)
+                    {//write data into array
+                        unsigned int packetLength;
+                        byte nextincommingBytesArrayNr = (incommingBytesArrayNr + 1) % incommingDataArraySize;
+                        for (unsigned int i = 0; i < packet.length(); i++) {
+                            incommingBytes[nextincommingBytesArrayNr][i] = packet.data()[i];
+                        }
+                        incommingDataLength[nextincommingBytesArrayNr] = packet.length();
+                        incommingBytesArrayNr = nextincommingBytesArrayNr;
+                    });  // end of onPacket call
                 WiFiUDPRunning = true;
                 WiFi_connect_step = 100;
                 break;
@@ -361,10 +405,6 @@ void Eth_handle_connection(void* pvParameters) {
                     if (Set.DataTransVia == 10) {
                         Set.DataTransVia = 7; //change DataTransfer to WiFi                                                            
                         if (EthDataTaskRunning) { vTaskDelete(taskHandle_DataFromAOGEth); delay(5); EthDataTaskRunning = false; }
-                        if (!WiFiDataTaskRunning) {
-                            xTaskCreate(getDataFromAOGWiFi, "DataFromAOGHandleWiFi", 5000, NULL, 1, &taskHandle_DataFromAOGWiFi);
-                            delay(500);
-                        }//start WiFi if not running
                     }
                 }
                 else {
@@ -430,13 +470,13 @@ void Eth_handle_connection(void* pvParameters) {
                 Eth_connect_step++;
                 break;
             }//switch
-        }    
-        if ((Eth_connect_step > 240) || (Eth_connect_step == 0)) {
-            Serial.println("closing Ethernet connection task");
-            delay(1);
-            vTaskDelete(NULL);
-            delay(1);
         }
+    }
+    if ((Eth_connect_step > 240) || (Eth_connect_step == 0)) {
+        Serial.println("closing Ethernet connection task");
+        delay(1);
+        vTaskDelete(NULL);
+        delay(1);
     }
 }
 
