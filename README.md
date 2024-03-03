@@ -1,12 +1,11 @@
 # AOG_Section_control
 
 <b>Section Control running on ESP32 for AgOpenGPS PC Software.<br><br>
-Multi version code: supports V 4.3.10 (=version code 17) and V5.x.20 (=version code 20)<br>
           
 For existing Nano boards, the Upgrade to Nano33iot, to get WiFi is a good solution. Use code for Nano33IoT in other repository.
           
 Supports: <br>- Section control, 16 sections
-          <br>- hardware input switches (Main ON/OFF, OFF/Auto/ON for each section, +/- pressure (only motor driven, no rate control in V4 so far))
+          <br>- hardware input switches (Main ON/OFF, OFF/Auto/ON for each section, +/- pressure (only motor driven, no rate control in V5 so far))
           <br>- documentation only (e.g. for machinery with hydraulic gates)
    <br>and most combinations of it</b>
 
@@ -33,6 +32,7 @@ Pressure(Flowrate) and Main Switch are (ON)-OFF-(ON) switches or push buttons: 3
 
 For the outputs use a driver like UDN2981(relais have common GND and UDN does +) or ULN2803 (relais have common + and ULN does GND) 
 
+This code supports PCA9555 16 IO port expander. If you want to use MCP23017 you must edit the code at some places.
 
 Remark on non booting ESP32: they don't like raising input voltage when powering your step down 3,3V power source. To keep them in reset, put a 10uF electrolytic capacitor to reset - GND and another one EN - GND. So the enable and the reset pin will be LOW until power is stable. With this they will boot.
 
