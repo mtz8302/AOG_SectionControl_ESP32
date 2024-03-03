@@ -7,7 +7,10 @@ For existing Nano boards, the Upgrade to Nano33iot, to get WiFi is a good soluti
 Supports: <br>- Section control, 16 sections
           <br>- hardware input switches (Main ON/OFF, OFF/Auto/ON for each section, +/- pressure (only motor driven, no rate control in V5 so far))
           <br>- documentation only (e.g. for machinery with hydraulic gates)
-   <br>and most combinations of it</b>
+   <br>and most combinations of it
+   <br>
+   <br>- data transfer via USB or WiFi or Ethernet UDP</b>
+   
 
 Settings can be changed via webinterface. The IP adress is x.x.x.71 in your WiFi network. If the log to your networks fails, you wait until an accesspoint is created. Connenct your computer to it and use your browser to get to webinterface at 192.168.1.1
 
