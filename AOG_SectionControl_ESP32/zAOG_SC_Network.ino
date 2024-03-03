@@ -423,12 +423,27 @@ void Eth_handle_connection(void* pvParameters) {
                 }
                 break;
             case 13:
+                if (Ethernet.linkStatus() != LinkON) {
+                    Serial.println("Ethernet cable is not connected. Retrying in 5 Sek.");
+                    now = millis();
+                    if (Eth_network_search_timeout == 0) { Eth_network_search_timeout = now + (Set.timeoutRouterEth * 1000); }
+                    if ((Set.timeoutRouterEth != 255) && (Eth_network_search_timeout < now)) {
+                        Set.DataTransVia = 7;
+                        Serial.print("no Ethernet connection for "); Serial.print(Set.timeoutRouterEth); Serial.println("s, data transfer now via WiFi");
+                        Eth_connect_step = 255;//no Ethernet, end Ethernet
+                    }
+                    vTaskDelay(5000);
+                }
+                else { Serial.println("Ethernet status OK"); Eth_connect_step++; }
+                break;
+
+/*
                 if (Ethernet.linkStatus() == LinkOFF) {
                     Serial.println("Ethernet cable is not connected. Retrying in 5 Sek.");
                     vTaskDelay(5000);
                 }
                 else { Serial.println("Ethernet status OK"); Eth_connect_step++; }
-                break;
+                break;*/
             case 14:
                 Serial.print("Got IP for Ethernet ");
                 Serial.println(Ethernet.localIP());

@@ -40,8 +40,9 @@ struct set {
 	char password5[24] = "aveasillrac";                // WiFi network password//Accesspoint name and password
 
 	char ssid_ap[24] = "SectionControlNet"; // name of Access point, if no WiFi found, no password!!
-	uint8_t timeoutRouter = 20;//s         // time (s) to search for existing WiFi, than starting Accesspoint 
+	uint8_t timeoutRouter = 20;//s         // time (s) to search for existing WiFi, then starting Accesspoint 
 	byte timeoutWebIO = 10;//min  		    // time (min) afterwards webinterface is switched off	
+	uint8_t timeoutRouterEth = 255;//s		// time (s) to search for Ethernet cable, then changing datatransfer to WiFi
 
 	//WiFi
 	byte WiFi_myip[4] = { 192, 168, 137, 71 };    // Section Control 
@@ -121,7 +122,7 @@ struct set {
 	uint16_t resInt0 = 0;
 	uint16_t resInt1 = 0;
 
-	bool debugmode = true;
+	bool debugmode = false;
 	bool debugmodeRelay = false;
 	bool debugmodeSwitches = false;
 	bool debugmodeDataFromAOG = false;
@@ -164,7 +165,7 @@ IPAddress WiFi_ipDestination, Eth_ipDestination; //set in network.ino
 byte Eth_connect_step, WiFi_connect_step = 10, WiFi_netw_nr = 0, WiFi_STA_connect_call_nr = 0, my_WiFi_Mode = 0; // WIFI_STA = 1 = Workstation  WIFI_AP = 2  = Accesspoint
 //int pingResult, WiFiWatchDog = 0;
 bool WiFiUDPRunning = false, EthUDPRunning = false, task_WiFiConnectRunning = false;
-unsigned long WebIOTimeOut = 0, WiFi_network_search_timeout = 0;//PingToNetworkLastTime = 0,
+unsigned long WebIOTimeOut = 0, WiFi_network_search_timeout = 0, Eth_network_search_timeout = 0;//PingToNetworkLastTime = 0,
 //webpage
 long argVal = 0;
 bool WebIORunning = false;
