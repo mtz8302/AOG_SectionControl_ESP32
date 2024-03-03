@@ -1,7 +1,7 @@
 //--------------------------------------------------------------
 //  EEPROM Data Handling 7. Maerz 2021
 //--------------------------------------------------------------
-#define EEPROM_SIZE 1024 //7. Maerz 2021: 2x 376 needed
+#define EEPROM_SIZE 1024 //3.3.2024: 2x 394 needed
 #define EE_ident1 0xED  // Marker Byte 0 + 1
 byte EE_ident2 = vers_nr;
 
